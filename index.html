@@ -7,7 +7,7 @@
     <style>
         /* ตั้งค่าพื้นฐานและสีพื้นหลัง */
         body {
-            background-color: #0d111b; /* สีพื้นหลังหลักที่เข้ม */
+            background-color: #0d111b;
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
@@ -40,7 +40,6 @@
             margin: 0;
             text-transform: uppercase;
             letter-spacing: 2px;
-            /* เอฟเฟกต์แสงนีออน */
             text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
         }
 
@@ -126,6 +125,7 @@
             color: #00ffff;
             font-weight: bold;
             font-size: 14px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -171,42 +171,37 @@
 
         <div class="footer">
             <div class="highlight">ผู้พัฒนาระบบ</div>
-            ครูวิทยากร วรรณา<br>
+            นางสาวสุพรรณี พลวงค์ษา<br>
+            นางสาวมณฑิรา ปรือปรัง<br>
             แผนกอิเล็กทรอนิกส์<br>
             วิทยาลัยสารพัดช่างศรีสะเกษ
         </div>
     </div>
 
     <script type="module">
-        // 1. นำเข้า Firebase modules (ต้องต่ออินเทอร์เน็ตถึงจะทำงานได้)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-        // 2. ตั้งค่า Firebase Configuration (*** คุณต้องเอาค่าจาก Firebase Console ของคุณมาใส่ตรงนี้ ***)
+        // *** อย่าลืมนำค่า Config จาก Firebase Console ของคุณมาใส่ตรงนี้นะครับ ***
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com", // สำคัญมากสำหรับ Realtime Database
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com", 
             projectId: "YOUR_PROJECT_ID",
             storageBucket: "YOUR_PROJECT_ID.appspot.com",
             messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
             appId: "YOUR_APP_ID"
         };
 
-        // เริ่มต้นการเชื่อมต่อ Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 3. ฟังก์ชันควบคุมสวิตช์
-        // path คือที่อยู่ในฐานข้อมูล เช่น "SmartHome/CH1"
         function setupSwitch(elementId, dbPath) {
             const switchElement = document.getElementById(elementId);
             const dbRef = ref(db, dbPath);
 
-            // A. อ่านค่าจาก Firebase (Real-time update) มาแสดงผลที่ปุ่ม
             onValue(dbRef, (snapshot) => {
                 const data = snapshot.val();
-                // สมมติว่าในฐานข้อมูลเก็บเป็น 1 (เปิด) และ 0 (ปิด)
                 if (data === 1) {
                     switchElement.checked = true;
                 } else {
@@ -214,16 +209,19 @@
                 }
             });
 
-            // B. ส่งค่าไป Firebase เมื่อผู้ใช้คลิกสวิตช์
             switchElement.addEventListener('change', (event) => {
                 if (event.target.checked) {
-                    set(dbRef, 1); // สั่งเปิด ส่งค่า 1
+                    set(dbRef, 1);
                 } else {
-                    set(dbRef, 0); // สั่งปิด ส่งค่า 0
+                    set(dbRef, 0);
                 }
             });
         }
 
-        // 4. ผูกปุ่มเข้ากับ Path ใน Database
-        // ตรง "SmartHome/CH1" ให้แก้ให้ตรงกับที่บอร์ด NodeMCU ของคุณไปอ่านค่านะครับ
-        setup
+        setupSwitch('sw1', 'SmartHome/CH1');
+        setupSwitch('sw2', 'SmartHome/CH2');
+        setupSwitch('sw3', 'SmartHome/CH3');
+        setupSwitch('sw4', 'SmartHome/CH4');
+    </script>
+</body>
+</html>
