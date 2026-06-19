@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home IoT Control Panel</title>
+    <style>
+        /* ตั้งค่าพื้นฐานและสีพื้นหลัง */
+        body {
+            background-color: #0d111b; /* สีพื้นหลังหลักที่เข้ม */
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* กล่องคอนเทนเนอร์หลัก */
+        .container {
+            background-color: #1a1e29;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid #2a3143;
+        }
+
+        /* ส่วนหัวข้อ */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #00ffff;
+            font-size: 28px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            /* เอฟเฟกต์แสงนีออน */
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+        }
+
+        .header p {
+            color: #a0a5b5;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* รายการช่องสวิตช์ */
+        .channel-item {
+            background-color: #232836;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .channel-label {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* สไตล์ของปุ่มสวิตช์ (Toggle) */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #3b4255;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        /* เมื่อสวิตช์เปิดทำงาน (สีนีออน) */
+        input:checked + .slider {
+            background-color: #00ffff;
+            box-shadow: 0 0 15px #00ffff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        /* ส่วนท้าย (เครดิต) */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 12px;
+            color: #838a9b;
+            line-height: 1.6;
+        }
+
+        .footer .highlight {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>Smart Home</h1>
+            <p>ESP8266 IoT Control Panel</p>
+        </div>
+
+        <div class="channel-item">
+            <div class="channel-label">💡 ช่องที่ 1 (D1)</div>
+            <label class="switch">
+                <input type="checkbox" id="sw1">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="channel-item">
+            <div class="channel-label">🔌 ช่องที่ 2 (D2)</div>
+            <label class="switch">
+                <input type="checkbox" id="sw2">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="channel-item">
+            <div class="channel-label">📺 ช่องที่ 3 (D5)</div>
+            <label class="switch">
+                <input type="checkbox" id="sw3">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="channel-item">
+            <div class="channel-label">❄️ ช่องที่ 4 (D6)</div>
+            <label class="switch">
+                <input type="checkbox" id="sw4">
+                <span class="slider"></span>
+            </label>
+        </div>
+
+        <div class="footer">
+            <div class="highlight">ผู้พัฒนาระบบ</div>
+            ครูวิทยากร วรรณา<br>
+            แผนกอิเล็กทรอนิกส์<br>
+            วิทยาลัยสารพัดช่างศรีสะเกษ
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. นำเข้า Firebase modules (ต้องต่ออินเทอร์เน็ตถึงจะทำงานได้)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        // 2. ตั้งค่า Firebase Configuration (*** คุณต้องเอาค่าจาก Firebase Console ของคุณมาใส่ตรงนี้ ***)
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com", // สำคัญมากสำหรับ Realtime Database
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // เริ่มต้นการเชื่อมต่อ Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 3. ฟังก์ชันควบคุมสวิตช์
+        // path คือที่อยู่ในฐานข้อมูล เช่น "SmartHome/CH1"
+        function setupSwitch(elementId, dbPath) {
+            const switchElement = document.getElementById(elementId);
+            const dbRef = ref(db, dbPath);
+
+            // A. อ่านค่าจาก Firebase (Real-time update) มาแสดงผลที่ปุ่ม
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                // สมมติว่าในฐานข้อมูลเก็บเป็น 1 (เปิด) และ 0 (ปิด)
+                if (data === 1) {
+                    switchElement.checked = true;
+                } else {
+                    switchElement.checked = false;
+                }
+            });
+
+            // B. ส่งค่าไป Firebase เมื่อผู้ใช้คลิกสวิตช์
+            switchElement.addEventListener('change', (event) => {
+                if (event.target.checked) {
+                    set(dbRef, 1); // สั่งเปิด ส่งค่า 1
+                } else {
+                    set(dbRef, 0); // สั่งปิด ส่งค่า 0
+                }
+            });
+        }
+
+        // 4. ผูกปุ่มเข้ากับ Path ใน Database
+        // ตรง "SmartHome/CH1" ให้แก้ให้ตรงกับที่บอร์ด NodeMCU ของคุณไปอ่านค่านะครับ
+        setup
